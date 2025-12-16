@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Flutter version tag'
+        description: 'Flutter version tag (stable, beta, dev, nightly or specific version like 3.22.2)'
         required: true
         default: 'nightly'
 
@@ -20,13 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: 'recursive'
+          submodules: recursive
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ github.event.inputs.version }}
-          channel: 'stable'
+          cache: true
 
       - name: Modify Config Files
         run: |
@@ -41,7 +41,7 @@ jobs:
             RwLock::new(map)
           };' | tee -a libs/hbb_common/src/config.rs
 
-          # 修改API服务器地址
+          # 修改 API 服务器地址
           sed -i "s|\"https://admin.rustdesk.com\".to_owned()|\"$API_SERVER\".to_owned()|g" src/common.rs
 
       - name: Build Windows
