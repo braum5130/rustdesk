@@ -44,12 +44,13 @@ jobs:
           # 修改 API 服务器地址
           sed -i "s|\"https://admin.rustdesk.com\".to_owned()|\"$API_SERVER\".to_owned()|g" src/common.rs
 
-      - name: Build Windows
+      - name: B uild Windows
         run: |
-          flutter pub get
-          flutter build windows --release
-          cd braum5130/rustdesk/flutter/windows
-          zip -r rustdesk-custom-windows.zip ./*
+    cd flutter        # Add this line if your app is in flutter/
+    flutter pub get
+    flutter build windows --release
+    cd build/windows  # Adjust this path as needed for the output
+    zip -r rustdesk-custom-windows.zip ./*
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
