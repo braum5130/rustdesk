@@ -1,0 +1,86 @@
+name: RustDesk Custom Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Flutter version tag (stable, beta, dev, nightly or specific version like 3.22.2)'
+        required: true
+        default: 'nightly'
+
+env:
+  RENDEZVOUS_SERVER: ${{ secrets.RENDEZVOUS_SERVER }}
+  RS_PUB_KEY: ${{ secrets.RS_PUB_KEY }}
+  API_SERVER: ${{ secrets.API_SERVER }}
+  FIXED_PASSWORD: ${{ secrets.FIXED_PASSWORD }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # -------------------------------------------------
+      # 1️⃣ Checkout source (包括子模組)
+      # -------------------------------------------------
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # -------------------------------------------------
+      # 2️⃣ 安裝 Flutter
+      # -------------------------------------------------
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          # 只保留 flutter-version，避免和 channel 互斥
+          flutter-version: ${{ github.event.inputs.version }}   # 如 nighty / stable / 3.22.2
+          cache: true                                          # 開啟快取，提升後續執行速度
+
+      # -------------------------------------------------
+      # 3️⃣ 修改 RustDesk 的 Rust 端配置檔
+      # -------------------------------------------------
+      - name: Modify Config Files
+        run: |
+          # 修改服務器配置
+          sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[&str] = \&[\"$RENDEZVOUS_SERVER\"];|g" libs/hbb_common/src/config.rs
+          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$RS_PUB_KEY\";|g" libs/hbb_common/src/config.rs
+
+          # 添加固定密碼
+          echo 'pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
+            let mut map = HashMap::new();
+            map.insert("password".to_string(), "'"$FIXED_PASSWORD"'".to_string());
+            RwLock::new(map)
+          };' | tee -a libs/hbb_common/src/config.rs
+
+          # 修改 API 伺服器地址
+          sed -i "s|\"https://admin.rustdesk.com\".to_owned()|\"$API_SERVER\".to_owned()|g" src/common.rs
+
+      # -------------------------------------------------
+      # 4️⃣ Build Windows 客戶端 (Flutter 部分)
+      # -------------------------------------------------
+      - name: Build Windows (Flutter)
+        # 這裡把工作目錄切到真正的 Flutter 專案根目錄
+        working-directory: ./flutter    # ← 替換成你的 pubspec 所在子目錄
+        run: |
+          # 取得 Dart/Flutter 依賴
+          flutter pub get
+
+          # 建置 Windows 可執行檔 (release)
+          flutter build windows --release
+
+      # -------------------------------------------------
+      # 5️⃣ 打包成 zip
+      # -------------------------------------------------
+      - name: Zip Windows Build
+        # 同樣必須在 build 輸出目錄下執行
+        working-directory: ./flutter/build/windows/runner/Release   # ← 與上一步的相對路徑保持一致
+        run: |
+          zip -r rustdesk-custom-windows.zip ./*
+
+      # -------------------------------------------------
+      # 6️⃣ 上傳 Artifacts (使用 v4)
+      # -------------------------------------------------
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustdesk-custom-windows
+          path: ./flutter/build/windows/runner/Release/rustdesk-custom-windows.zip
