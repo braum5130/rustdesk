@@ -48,7 +48,7 @@ jobs:
         run: |
           flutter pub get
           flutter build windows --release
-          cd build/windows/runner/Release
+          cd braum5130/rustdesk/flutter/windows
           zip -r rustdesk-custom-windows.zip ./*
 
       - name: Upload Artifact
