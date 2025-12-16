@@ -32,7 +32,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           # 只保留 flutter-version，避免和 channel 互斥
-          flutter-version: ${{ github.event.inputs.version }}   # 如 nighty / stable / 3.22.2
+          flutter-version: '3.38.5'   # 如 nighty / stable / 3.22.2
           cache: true                                          # 開啟快取，提升後續執行速度
 
       # -------------------------------------------------
