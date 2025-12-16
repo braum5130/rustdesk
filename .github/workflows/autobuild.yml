@@ -23,7 +23,7 @@ jobs:
           submodules: 'recursive'
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@v4
         with:
           flutter-version: ${{ github.event.inputs.version }}
           channel: 'stable'
@@ -52,7 +52,7 @@ jobs:
           zip -r rustdesk-custom-windows.zip ./*
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rustdesk-custom-windows
           path: build/windows/runner/Release/rustdesk-custom-windows.zip
