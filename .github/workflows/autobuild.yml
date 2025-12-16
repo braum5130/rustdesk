@@ -55,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rustdesk-custom-windows
-          path: build/windows/runner/Release/rustdesk-custom-windows.zip
+          path: braum5130/rustdesk/flutter/windows/rustdesk-custom-windows.zip
