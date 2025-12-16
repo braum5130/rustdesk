@@ -42,7 +42,7 @@ jobs:
         run: |
           # 修改服務器配置
           sed -i "s|pub const RENDEZVOUS_SERVERS: &\[&str\] = &\[.*\];|pub const RENDEZVOUS_SERVERS: \&[&str] = \&[\"$RENDEZVOUS_SERVER\"];|g" libs/hbb_common/src/config.rs
-          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: \&str = \"$RS_PUB_KEY\";|g" libs/hbb_common/src/config.rs
+          sed -i "s|pub const RS_PUB_KEY: &str = \".*\";|pub const RS_PUB_KEY: &str = \"REPLACE_YOUR_KEY_HERE\";|" path/to/file.rs
 
           # 添加固定密碼
           echo 'pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
